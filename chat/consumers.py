@@ -8,6 +8,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from asgiref.sync import sync_to_async, async_to_sync
 import channels
 import json
+import os
 import aioredis
 import asyncio
 
@@ -32,7 +33,7 @@ class ChatRoomConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         # init redis connection
-        #self.redis = await aioredis.create_redis('redis://localhost')
+        self.redis = await aioredis.create_redis(os.environ.get('REDIS_URL', 'redis://localhost:6379'))
 
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = f'chat_{self.room_name}'
@@ -51,8 +52,8 @@ class ChatRoomConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         # close redis connection
-        #self.redis.close()
-        #await self.redis.wait_closed()
+        self.redis.close()
+        await self.redis.wait_closed()
 
         await self.channel_layer.group_discard(
             self.room_group_name,
@@ -90,15 +91,22 @@ class ChatRoomConsumer(AsyncWebsocketConsumer):
     async def get_user(self, event):
         # print(event['message'])
         if event['message'] == 'disconnect':
-            pass
+            try:
+                # remove user
+                await self.redis.hdel(self.room_name, event['username'])
+            except ValueError:
+                print('user already removed')
+        else:
+            # add current user in chat
+            await self.redis.hmset(self.room_name, event['username'], event['username'])
 
-        # users_dict = await self.redis.hgetall(self.room_name)
+        users_dict = await self.redis.hgetall(self.room_name)
 
         # convert dict to list
-        # users_dict_values = list(users_dict.values())
+        users_dict_values = list(users_dict.values())
         users_list = []
-        #for i in range(len(users_dict_values)):
-        #    users_list.append(users_dict_values[i].decode('UTF-8'))
+        for i in range(len(users_dict_values)):
+            users_list.append(users_dict_values[i].decode('UTF-8'))
 
         print(f'current users: {users_list}')
         await self.send(text_data=json.dumps({
