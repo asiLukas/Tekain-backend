@@ -149,15 +149,15 @@ def delete_user(request):
 def update_post(request, id):
     img_io = io.BytesIO()
     image = request.FILES['image']
-    print(image.size, image.name, image.file,
-          image.content_type, image.field_name)
-    img_file = InMemoryUploadedFile(
-        image.file,
-        'image',
-        image.name,
-        image.content_type,
-        image.size,
-        None)
+    #print(image.size, image.name, image.file,
+    #      image.content_type, image.field_name)
+    #img_file = InMemoryUploadedFile(
+    #    image.file,
+    #    'image',
+    #    image.name,
+    #    image.content_type,
+    #    image.size,
+    #    None)
     if image.content_type == 'image/heif':
         img = Image(file=image)
         img.format = 'jpg'
@@ -191,7 +191,7 @@ def update_post(request, id):
     post_user = post.user
     if (str(post_user) == str(loggedin_user)):
         serializer = PostSerializer(
-            instance=post, data={'caption': request.data['caption'], 'image': img_file})
+            instance=post, data=request.data)
         if serializer.is_valid():
             print(serializer.validated_data)
             serializer.save()
@@ -201,7 +201,6 @@ def update_post(request, id):
         return Response(status=status.HTTP_200_OK)
     else:
         return Response('nene', status=status.HTTP_400_BAD_REQUEST)
-
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
