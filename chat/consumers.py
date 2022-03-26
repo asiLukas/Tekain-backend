@@ -90,16 +90,15 @@ class ChatRoomConsumer(AsyncWebsocketConsumer):
     async def get_user(self, event):
         # print(event['message'])
         if event['message'] == 'disconnect':
+            pass
 
-        else:
-            # add current user in chat
-
+        # users_dict = await self.redis.hgetall(self.room_name)
 
         # convert dict to list
-        users_dict_values = list(users_dict.values())
+        # users_dict_values = list(users_dict.values())
         users_list = []
-        for i in range(len(users_dict_values)):
-            users_list.append(users_dict_values[i].decode('UTF-8'))
+        #for i in range(len(users_dict_values)):
+        #    users_list.append(users_dict_values[i].decode('UTF-8'))
 
         print(f'current users: {users_list}')
         await self.send(text_data=json.dumps({
