@@ -1,11 +1,7 @@
-from channels.auth import AuthMiddlewareStack
-from channels.routing import ProtocolTypeRouter, URLRouter
-import chat.routing
+import os
+import django
+from channels.routing import get_default_application
 
-application = ProtocolTypeRouter({
-    'websocket': AuthMiddlewareStack(
-        URLRouter(
-            chat.routing.websocket_urlpatterns
-        )
-    )
-})
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kain.settings')
+django.setup()
+application = get_default_application()
