@@ -32,7 +32,7 @@ class ChatRoomConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         # init redis connection
-        self.redis = await aioredis.create_redis('redis://localhost')
+        #self.redis = await aioredis.create_redis('redis://localhost')
 
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = f'chat_{self.room_name}'
@@ -51,8 +51,8 @@ class ChatRoomConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         # close redis connection
-        self.redis.close()
-        await self.redis.wait_closed()
+        #self.redis.close()
+        #await self.redis.wait_closed()
 
         await self.channel_layer.group_discard(
             self.room_group_name,
@@ -90,16 +90,10 @@ class ChatRoomConsumer(AsyncWebsocketConsumer):
     async def get_user(self, event):
         # print(event['message'])
         if event['message'] == 'disconnect':
-            try:
-                # remove user
-                await self.redis.hdel(self.room_name, event['username'])
-            except ValueError:
-                print('user already removed')
+
         else:
             # add current user in chat
-            await self.redis.hmset(self.room_name, event['username'], event['username'])
 
-        users_dict = await self.redis.hgetall(self.room_name)
 
         # convert dict to list
         users_dict_values = list(users_dict.values())
