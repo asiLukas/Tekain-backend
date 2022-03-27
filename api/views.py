@@ -202,6 +202,7 @@ def update_post(request, id):
     else:
         return Response('nene', status=status.HTTP_400_BAD_REQUEST)
 
+
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_post(request, id):
